@@ -1,0 +1,4 @@
+</main>
+<footer class="footer"><div class="container footer-grid"><div><a class="brand light" href="index.php"><span class="brand-mark">B+</span><span>Blood<span>Net</span><small>Emergency Donor Network</small></span></a><p>A privacy-first emergency blood coordination platform built to connect verified donors, hospitals and people in urgent need.</p></div><div><h4>Network</h4><a href="requests.php">Active requests</a><a href="register.php">Become a donor</a><a href="request-blood.php">Request blood</a></div><div><h4>Safety</h4><span>Verified profiles</span><span>Masked contact flow</span><span>Audit trail</span></div><div><h4>Demo project</h4><span>PHP + MySQL</span><span>Responsive UI</span><span>Dynamic workflow</span></div></div><div class="footer-bottom container">© <?=date('Y')?> BloodNet. Academic demonstration platform.</div></footer>
+<script src="assets/js/app.js"></script>
+</body></html>

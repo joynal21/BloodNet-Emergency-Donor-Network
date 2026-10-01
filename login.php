@@ -1,0 +1,21 @@
+<?php require 'config/db.php'; require 'includes/functions.php'; if(logged_in()){header('Location: dashboard.php');exit;}
+$error='';
+if($_SERVER['REQUEST_METHOD']==='POST'){
+ verify_csrf();
+ if(isset($_POST['demo_role']) && is_local_demo()){
+   $roles=['admin'=>'admin@bloodnet.local','donor'=>'ariana@bloodnet.local','hospital'=>'hospital@bloodnet.local','requester'=>'user@bloodnet.local'];
+   $role=$_POST['demo_role']??'admin';$email=$roles[$role]??$roles['admin'];
+   $st=$conn->prepare('SELECT * FROM users WHERE email=? AND role=? LIMIT 1');$st->bind_param('ss',$email,$role);$st->execute();$u=$st->get_result()->fetch_assoc();
+   if($u){session_regenerate_id(true);$_SESSION['user']=['id'=>$u['id'],'name'=>$u['name'],'email'=>$u['email'],'role'=>$u['role']];audit($conn,'Local demo login','user',(int)$u['id'],'Role: '.$role);header('Location: dashboard.php');exit;}
+ }
+ $email=trim($_POST['email']??'');$pass=$_POST['password']??'';
+ $_SESSION['login_attempts']=($_SESSION['login_attempts']??0)+1;
+ if(($_SESSION['login_attempts']??0)>12){$error='Too many attempts in this session. Close the browser and try again.';}
+ else{$st=$conn->prepare('SELECT * FROM users WHERE email=? LIMIT 1');$st->bind_param('s',$email);$st->execute();$u=$st->get_result()->fetch_assoc();if($u&&password_verify($pass,$u['password'])){session_regenerate_id(true);$_SESSION['login_attempts']=0;$_SESSION['user']=['id'=>$u['id'],'name'=>$u['name'],'email'=>$u['email'],'role'=>$u['role']];audit($conn,'Logged in','user',(int)$u['id'],'Successful login');header('Location: dashboard.php');exit;}$error='Invalid email or password.';}
+}
+$pageTitle='Sign In';include 'includes/header.php'; ?>
+<div class="container"><div class="form-shell login-shell"><div class="form-side login-visual"><span class="kicker" style="color:#fecdd3">Secure network access</span><h2>One sign-in. Four coordinated roles.</h2><p>Admins, donors, hospitals and requesters each see a dedicated command center with their own actions and history.</p><div class="security-list"><span><i class="fa-solid fa-lock"></i> CSRF-protected forms</span><span><i class="fa-solid fa-shield-halved"></i> Hardened session cookies</span><span><i class="fa-solid fa-user-secret"></i> No public donor contact details</span></div></div><div class="form-main"><span class="kicker">Welcome back</span><h2>Sign in to BloodNet</h2><p class="form-note">Use your account, or choose a local demo role below. Admin is the default demo view.</p><?php if($error):?><div class="alert alert-error"><?=e($error)?></div><?php endif;?>
+<form method="post"><?=csrf_field()?><div class="form-group"><label>Email</label><input class="form-control" type="email" name="email" autocomplete="username" required placeholder="you@example.com"></div><div class="form-group"><label>Password</label><input class="form-control" type="password" name="password" autocomplete="current-password" required placeholder="Enter your password"></div><button class="btn btn-primary btn-lg" style="width:100%">Sign in securely</button></form>
+<?php if(is_local_demo()):?><div class="demo-access"><div class="demo-head"><div><b>Local demo access</b><span>No password memorization needed</span></div><span class="badge green">XAMPP only</span></div><div class="demo-grid"><?php foreach(['admin'=>['Admin','fa-user-shield'],'donor'=>['Donor','fa-hand-holding-droplet'],'hospital'=>['Hospital','fa-hospital'],'requester'=>['Requester','fa-person-circle-plus']] as $role=>$d):?><form method="post"><?=csrf_field()?><input type="hidden" name="demo_role" value="<?=$role?>"><button class="demo-role <?=$role==='admin'?'selected':''?>"><i class="fa-solid <?=$d[1]?>"></i><span><b><?=$d[0]?></b><small><?=$role==='admin'?'Default command center':'Open demo dashboard'?></small></span><i class="fa-solid fa-arrow-right"></i></button></form><?php endforeach;?></div><p class="demo-warning"><i class="fa-solid fa-circle-info"></i> These buttons only appear on localhost/127.0.0.1 and are hidden automatically when deployed.</p></div><?php endif;?>
+<p class="form-note" style="margin-top:18px">New donor? <a style="color:#be123c;font-weight:800" href="register.php">Create a donor account</a></p></div></div></div>
+<?php include 'includes/footer.php'; ?>

@@ -1,0 +1,1 @@
+<?php require 'config/db.php'; require 'includes/functions.php';require_login();$role=user()['role']; if($role==='admin') header('Location: admin.php'); elseif($role==='hospital') header('Location: hospital.php'); elseif($role==='donor') header('Location: donor.php'); else header('Location: requester.php'); exit;

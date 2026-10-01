@@ -1,0 +1,1 @@
+<?php require 'config/db.php'; require 'includes/functions.php'; if(logged_in()) audit($conn,'Logged out','user',(int)user()['id'],'User ended session'); session_destroy(); header('Location: index.php'); exit;
